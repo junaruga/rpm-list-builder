@@ -1,7 +1,8 @@
-# RPM List Builder
+# RPM List Builder Explorer
 
 RPM List Builder (rpmlb) helps you to build a list of defined RPM packages including Red Hat Software Collection (SCL) continually from the [recipe file](https://github.com/sclorg/rhscl-rebuild-recipes).
 
+RPM List Builder Explorer is a subspecies of it and the explorer version that includes challenging features.
 
 ## Features
 
@@ -28,17 +29,9 @@ rpmlb ...
 
 ### Download
 
-Download files from the git repository.
+Download files from the git repository, **setting branch `explorer`**.
 
-    $ git clone REPO_URL
-
-Check release tags.
-
-    $ git tag
-
-Check out to release version.
-
-    $ git checkout vX.Y.Z
+    $ git clone REPO_URL -b explorer
 
 ### Install to virtualenv environment
 
