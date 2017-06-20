@@ -23,7 +23,7 @@ def load(file_path):
         LOG.error('File not found: %s at %s', file_path, os.getcwd())
         raise e
 
-    def dump(obj):
-        output = yaml.dump(obj, Dumper=Dumper,
-                           default_flow_style=False)
-        print(output)
+def dump(obj):
+    output = yaml.dump(obj, Dumper=Dumper,
+                       default_flow_style=False)
+    print(output)
