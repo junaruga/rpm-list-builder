@@ -18,10 +18,12 @@ setuptools.setup(
     install_requires=[
         'PyYAML',
         'retrying',
+        'click',
+        'typing;python_version<"3.5"',
     ],
     entry_points={
         'console_scripts': [
-            'rpmlb=rpmlb.cli:main',
+            'rpmlb=rpmlb.cli:run',
         ]
     },
     setup_requires=[

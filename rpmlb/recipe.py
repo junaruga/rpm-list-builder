@@ -8,31 +8,22 @@ LOG = logging.getLogger(__name__)
 class Recipe:
     """A class to describe recipe data."""
 
-    def __init__(self, file_path, recipe_id):
+    def __init__(self, file_path, collection_id):
         if not file_path:
             raise ValueError('file_path is required.')
-        if not recipe_id:
-            raise ValueError('recipe_id is required.')
+        if not collection_id:
+            raise ValueError('collection_id is required.')
 
-        self._recipe_id = recipe_id
-        self._recipe = None
+        self._collection_id = collection_id
 
         yaml = Yaml(file_path)
         LOG.debug('Loaded recipe: %s', file_path)
         recipe_dict = yaml.content
-        self._recipe = recipe_dict[recipe_id]
-        self._num_of_package = len(self._recipe['packages'])
-
-    @property
-    def recipe(self):
-        return self._recipe
-
-    @property
-    def num_of_package(self):
-        return self._num_of_package
+        self.recipe = recipe_dict[collection_id]
+        self.num_of_package = len(self.recipe['packages'])
 
     def each_normalized_package(self):
-        packages = self._recipe['packages']
+        packages = self.recipe['packages']
         for package in packages:
             package_dict = {}
             # String or hash
@@ -52,7 +43,7 @@ class Recipe:
             yield package_dict
 
     def verify(self):
-        recipe = self._recipe
+        recipe = self.recipe
 
         if 'name' not in recipe:
             raise ValueError('name is required in the recipe.')
@@ -69,9 +60,8 @@ class Recipe:
             raise ValueError('packages is invalid in the recipe.')
         if not isinstance(recipe['packages'], list):
             raise ValueError('packages should be a list.')
-        if len(recipe['packages']) <= 0:
-            raise ValueError('packages should have a element > 0')
         for package_dict in self.each_normalized_package():
-            assert(package_dict['name'])
+            if not package_dict['name']:
+                raise ValueError('name is invalid in the package.')
 
         return True
