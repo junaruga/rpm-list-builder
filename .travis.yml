@@ -24,8 +24,11 @@ cache:
 install:
 - pip install --upgrade pip setuptools
 - pip install tox-travis
+- pip install python-coveralls
 
-script: tox
+script: tox -e coveralls
+
+after_success: coveralls
 
 branches:
   only:
