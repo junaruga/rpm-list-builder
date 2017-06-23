@@ -1,6 +1,6 @@
 # RPM List Builder Explorer
 
-[![Travis Build Status](https://travis-ci.org/sclorg/rpm-list-builder.svg?branch=master)](https://travis-ci.org/sclorg/rpm-list-builder)
+[![Travis Build Status](https://travis-ci.org/junaruga/rpm-list-builder.svg?branch=explorer)](https://travis-ci.org/junaruga/rpm-list-builder)
 
 RPM List Builder (rpmlb) helps you to build a list of defined RPM packages including Red Hat Software Collection (SCL) continually from the [recipe file](https://github.com/sclorg/rhscl-rebuild-recipes).
 
