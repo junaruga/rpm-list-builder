@@ -1,7 +1,9 @@
 """Test argument parsing"""
 
+import importlib
 import logging
 import os
+import sys
 from pathlib import Path
 from textwrap import dedent
 
@@ -9,7 +11,6 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from rpmlb import LOG
 from rpmlb.cli import run
 
 
@@ -21,7 +22,7 @@ def runner():
             yield r
     finally:
         # Make sure other tests are not affected by the ones with --verbose
-        LOG.setLevel(logging.INFO)
+        importlib.reload(sys.modules['logging'])
 
 
 @pytest.fixture
@@ -83,12 +84,19 @@ def test_parse_argv_no_options(tmpdir, option):
 
 
 @pytest.mark.parametrize('verbose', (True, False))
-def test_log_verbosity(runner, verbose):
+def test_log_verbosity(runner, verbose, recipe_arguments):
     """Ensure that the verbosity is set properly on."""
+    options = ['--verbose'] if verbose else []
+    ctx = run.make_context('test_log_verbosity',
+                           options + recipe_arguments)
+    assert ctx.params['verbose'] is verbose
 
+    log = logging.getLogger()
     # Initial state – if the test fails here, the app has changed
     # and the test needs to be adjusted.
-    assert LOG.getEffectiveLevel() == logging.INFO
+    # The default log level is WARNING.
+    # https://docs.python.org/3/library/logging.html
+    assert log.getEffectiveLevel() == logging.WARNING
 
     recipe = Path('recipe.yml')
     recipe.touch()
@@ -97,7 +105,7 @@ def test_log_verbosity(runner, verbose):
     level = logging.DEBUG if verbose else logging.INFO
 
     runner.invoke(run, verbose_args + [str(recipe), 'test'])
-    assert LOG.getEffectiveLevel() == level
+    assert log.getEffectiveLevel() == level
 
 
 @pytest.fixture(params=('work-directory', 'custom-file'))
@@ -119,7 +127,7 @@ def path_options(path_kind):
     return path, options
 
 
-def test_path_nonexistent(runner, path_kind, recipe_arguments):
+def test_path_nonexistent(path_kind, recipe_arguments):
     path, options = path_options(path_kind)
 
     with pytest.raises(click.BadParameter):
@@ -127,7 +135,7 @@ def test_path_nonexistent(runner, path_kind, recipe_arguments):
                          options + recipe_arguments)
 
 
-def test_path_expected_and_absolute(runner, path_kind, recipe_arguments):
+def test_path_expected_and_absolute(path_kind, recipe_arguments):
     path, options = path_options(path_kind)
 
     if path_kind.endswith('directory'):
@@ -142,7 +150,7 @@ def test_path_expected_and_absolute(runner, path_kind, recipe_arguments):
     assert result.is_absolute()
 
 
-def test_path_bad_permissions(runner, path_kind, recipe_arguments):
+def test_path_bad_permissions(path_kind, recipe_arguments):
     path, options = path_options(path_kind)
 
     if path_kind.endswith('directory'):
@@ -158,7 +166,7 @@ def test_path_bad_permissions(runner, path_kind, recipe_arguments):
                          options + recipe_arguments)
 
 
-def test_resume_conversion(runner, recipe_arguments):
+def test_resume_conversion(recipe_arguments):
     """Resume is converted into integer value."""
 
     options = ['--resume', '42']
@@ -168,7 +176,7 @@ def test_resume_conversion(runner, recipe_arguments):
     assert isinstance(ctx.params['resume'], int)
 
 
-def test_invalid_resume(runner, recipe_arguments):
+def test_invalid_resume(recipe_arguments):
 
     options = ['--resume', 'start']
 
@@ -181,7 +189,7 @@ def test_invalid_resume(runner, recipe_arguments):
     ('mock-config', 'default'),
     ('copr-repo', 'scratch-ror5'),
 ])
-def test_simple_options(runner, recipe_arguments, option, value):
+def test_simple_options(recipe_arguments, option, value):
     """Specific option values are passed unprocessed."""
 
     options = ['--' + option, value]

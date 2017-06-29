@@ -1,10 +1,11 @@
 """CLI interface for the package"""
 
+import logging
 import os
 
 import click
 
-from . import LOG, configure_logging
+from . import logging as rpmlb_logging
 from .builder.base import BaseBuilder
 from .downloader.base import BaseDownloader
 from .recipe import Recipe
@@ -16,9 +17,6 @@ from .work import Work
 @click.option(
     '--verbose', '-v', is_flag=True, default=False,
     help='Turn on verbose logging.',
-    # Enable logging as early as possible
-    is_eager=True, expose_value=False,
-    callback=lambda ctx, param, verbose: configure_logging(verbose),
 )
 @click.option(
     '--download', '-d',
@@ -80,6 +78,10 @@ def run(recipe_file, recipe_name, **option_dict):
     (such as 'python33').
     """
 
+    # Enable logging as early as possible
+    rpmlb_logging.configure_logging(option_dict['verbose'])
+    log = logging.getLogger(__name__)
+
     # Load recipe and processing objects
     recipe = Recipe(recipe_file, recipe_name)
     recipe.verify()
@@ -92,11 +94,11 @@ def run(recipe_file, recipe_name, **option_dict):
     work = Work(recipe, **option_dict)
 
     # Download
-    LOG.info('Downloading...')
+    log.info('Downloading...')
     downloader.run(work, **option_dict)
 
     # Build
-    LOG.info('Building...')
+    log.info('Building...')
     builder.run(work, **option_dict)
 
-    LOG.info('Success!')
+    log.info('Success!')
