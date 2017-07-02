@@ -1,6 +1,7 @@
 # RPM List Builder Explorer
 
 [![Travis Build Status](https://travis-ci.org/junaruga/rpm-list-builder.svg?branch=explorer)](https://travis-ci.org/junaruga/rpm-list-builder)
+[![Code Health](https://landscape.io/github/junaruga/rpm-list-builder/explorer/landscape.svg?style=flat)](https://landscape.io/github/junaruga/rpm-list-builder/explorer)
 [![Coverage Status](https://coveralls.io/repos/github/junaruga/rpm-list-builder/badge.svg?branch=explorer)](https://coveralls.io/github/junaruga/rpm-list-builder?branch=explorer)
 [![Code Climate Status](https://codeclimate.com/github/junaruga/rpm-list-builder.png)](https://codeclimate.com/github/junaruga/rpm-list-builder)
 
