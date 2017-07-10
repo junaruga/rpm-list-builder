@@ -1,9 +1,7 @@
 """Test argument parsing"""
 
-import importlib
 import logging
 import os
-import sys
 from pathlib import Path
 from textwrap import dedent
 
@@ -15,14 +13,23 @@ from rpmlb.cli import run
 
 
 @pytest.fixture
-def runner():
-    r = CliRunner()
+def root_logger():
+    log = logging.getLogger()
+    default_level = log.getEffectiveLevel()
+
     try:
-        with r.isolated_filesystem():
-            yield r
+        yield log
     finally:
         # Make sure other tests are not affected by the ones with --verbose
-        importlib.reload(sys.modules['logging'])
+        log.setLevel(default_level)
+
+
+@pytest.fixture
+def runner(root_logger):
+    r = CliRunner()
+
+    with r.isolated_filesystem():
+        yield r
 
 
 @pytest.fixture
