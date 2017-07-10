@@ -17,6 +17,10 @@ from .work import Work
 @click.option(
     '--verbose', '-v', is_flag=True, default=False,
     help='Turn on verbose logging.',
+    # Enable logging as early as possible
+    is_eager=True, expose_value=False,
+    callback=lambda ctx, param, verbose:
+        rpmlb_logging.configure_logging(verbose),
 )
 @click.option(
     '--download', '-d',
@@ -78,8 +82,6 @@ def run(recipe_file, recipe_name, **option_dict):
     (such as 'python33').
     """
 
-    # Enable logging as early as possible
-    rpmlb_logging.configure_logging(option_dict['verbose'])
     log = logging.getLogger(__name__)
 
     # Load recipe and processing objects

@@ -1,9 +1,7 @@
 """Test argument parsing"""
 
-import importlib
 import logging
 import os
-import sys
 from pathlib import Path
 from textwrap import dedent
 
@@ -15,14 +13,16 @@ from rpmlb.cli import run
 
 
 @pytest.fixture
-def runner():
+def root_logger():
+    return logging.getLogger()
+
+
+@pytest.fixture
+def runner(root_logger):
     r = CliRunner()
-    try:
-        with r.isolated_filesystem():
-            yield r
-    finally:
-        # Make sure other tests are not affected by the ones with --verbose
-        importlib.reload(sys.modules['logging'])
+
+    with r.isolated_filesystem():
+        yield r
 
 
 @pytest.fixture
@@ -84,28 +84,14 @@ def test_parse_argv_no_options(tmpdir, option):
 
 
 @pytest.mark.parametrize('verbose', (True, False))
-def test_log_verbosity(runner, verbose, recipe_arguments):
+def test_log_verbosity(root_logger, runner, verbose, recipe_arguments):
     """Ensure that the verbosity is set properly on."""
-    options = ['--verbose'] if verbose else []
-    ctx = run.make_context('test_log_verbosity',
-                           options + recipe_arguments)
-    assert ctx.params['verbose'] is verbose
-
-    log = logging.getLogger()
-    # Initial state – if the test fails here, the app has changed
-    # and the test needs to be adjusted.
-    # The default log level is WARNING.
-    # https://docs.python.org/3/library/logging.html
-    assert log.getEffectiveLevel() == logging.WARNING
-
-    recipe = Path('recipe.yml')
-    recipe.touch()
 
     verbose_args = ['--verbose'] if verbose else []
     level = logging.DEBUG if verbose else logging.INFO
 
-    runner.invoke(run, verbose_args + [str(recipe), 'test'])
-    assert log.getEffectiveLevel() == level
+    runner.invoke(run, verbose_args + recipe_arguments)
+    assert root_logger.getEffectiveLevel() == level
 
 
 @pytest.fixture(params=('work-directory', 'custom-file'))

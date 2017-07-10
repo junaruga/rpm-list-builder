@@ -1,25 +1,28 @@
-import importlib
 import logging
-import sys
 
 import pytest
 
+import rpmlb.logging
+
 
 @pytest.fixture
-def rpmlb_logging():
-    from rpmlb import logging as rpmlb_logging
-    yield rpmlb_logging
-    # Reset logging module updated by logging.basicConfig.
-    importlib.reload(sys.modules['logging'])
+def root_logger():
 
-
-def test_configure_logging_logs_on_verbose_false(rpmlb_logging):
-    rpmlb_logging.configure_logging(False)
     log = logging.getLogger()
-    assert log.getEffectiveLevel() == logging.INFO
+
+    default_level = log.getEffectiveLevel()
+
+    try:
+        yield log
+    finally:
+        log.setLevel(default_level)
 
 
-def test_configure_logging_logs_on_verbose_true(rpmlb_logging):
-    rpmlb_logging.configure_logging(True)
-    log = logging.getLogger()
-    assert log.getEffectiveLevel() == logging.DEBUG
+def test_configure_logging_logs_on_verbose_false(root_logger):
+    rpmlb.logging.configure_logging(False)
+    assert root_logger.getEffectiveLevel() == logging.INFO
+
+
+def test_configure_logging_logs_on_verbose_true(root_logger):
+    rpmlb.logging.configure_logging(True)
+    assert root_logger.getEffectiveLevel() == logging.DEBUG
