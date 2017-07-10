@@ -75,14 +75,14 @@ from .work import Work
     'recipe_file',
     type=click.Path(exists=True, dir_okay=False, resolve_path=True),
 )
-@click.argument('recipe_name')
-def run(recipe_file, recipe_name, **option_dict):
-    """Download and build RPMs listed in RECIPE_FILE under RECIPE_NAME
+@click.argument('collection_id')
+def run(recipe_file, collection_id, **option_dict):
+    """Download and build RPMs listed in RECIPE_FILE under COLLECTION_ID
     (such as 'python33').
     """
 
     # Load recipe and processing objects
-    recipe = Recipe(recipe_file, recipe_name)
+    recipe = Recipe(recipe_file, collection_id)
     recipe.verify()
 
     builder = BaseBuilder.get_instance(option_dict['build'])
