@@ -189,3 +189,14 @@ def test_simple_options(runner, recipe_arguments, option, value):
                            options + recipe_arguments)
 
     assert ctx.params[option.replace('-', '_')] == value
+
+
+@pytest.mark.parametrize('help_switch', ['--help', '-h'])
+def test_help_option_variants(runner, help_switch, recipe_arguments):
+    """Test that both short and long version of help switch works."""
+
+    # NOTE: recipe_arguments are necessary, both run.make_context and
+    # runner.invoke break without them for some reason
+    result = runner.invoke(run, [help_switch] + recipe_arguments)
+
+    assert result.exit_code == 0, result.output
