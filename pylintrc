@@ -1,0 +1,7 @@
+[REPORTS]
+# output-format=colorized
+output-format=text
+msg-template={path}:{line}: [{msg_id}({symbol}), {obj}] {msg}
+
+[MESSAGES CONTROL]
+disable=missing-docstring

@@ -7,6 +7,8 @@ flake8-colors
 flake8-isort
 # The pep8-naming is used as a plugin for flake8
 pep8-naming
+# More detailed analysis
+pylint
 # Code Formatter
 pyformat
 # Coverage
