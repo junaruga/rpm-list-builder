@@ -18,14 +18,15 @@ class Custom:
         if 'name' in kwargs:
             env['PKG'] = kwargs['name']
 
-        cmd_dict = self._get_yaml_content()
+        cmd_dict = self.yaml_content
         if key not in cmd_dict:
             return
         cmd_element = cmd_dict[key]
 
         Yaml.run_cmd_element(cmd_element, env=env)
 
-    def _get_yaml_content(self):
+    @property
+    def yaml_content(self):
         if self._yaml_content:
             return self._yaml_content
         yaml = Yaml(self._file_path)

@@ -34,7 +34,6 @@ class Yaml:
 
     @staticmethod
     def run_cmd_element(cmd_element, **kwargs):
-        cmds = None
         if isinstance(cmd_element, str):
             cmds = [cmd_element]
         elif isinstance(cmd_element, list):

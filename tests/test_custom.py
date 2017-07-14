@@ -1,4 +1,5 @@
 import os
+from unittest import mock
 
 import pytest
 
@@ -23,16 +24,14 @@ def test_run_cmds_runs_cmds_on_valid_custom_file(valid_custom):
         random_file_foo = helper.get_random_generated_tmp_file()
         random_file_bar_part = helper.get_random_generated_tmp_file()
 
-        def _get_yaml_content(*args):
-            content = {
-                'build': [
-                    'touch {0}'.format(random_file_foo),
-                    'touch "{0}-$PKG"'.format(random_file_bar_part),
-                ]
-            }
-            return content
-
-        valid_custom._get_yaml_content = _get_yaml_content
+        content = {
+            'build': [
+                'touch {0}'.format(random_file_foo),
+                'touch "{0}-$PKG"'.format(random_file_bar_part),
+            ]
+        }
+        type(valid_custom).yaml_content = mock.PropertyMock(
+                                          return_value=content)
 
         valid_custom.run_cmds('build', name='rubygem-bar')
 
@@ -51,15 +50,13 @@ def test_run_cmds_skips_cmds_on_unknown_key(valid_custom):
     try:
         random_file_foo = helper.get_random_generated_tmp_file()
 
-        def _get_yaml_content(*args):
-            content = {
-                'build': [
-                    'touch {0}'.format(random_file_foo),
-                ]
-            }
-            return content
-
-        valid_custom._get_yaml_content = _get_yaml_content
+        content = {
+            'build': [
+                'touch {0}'.format(random_file_foo),
+            ]
+        }
+        type(valid_custom).yaml_content = mock.PropertyMock(
+                                          return_value=content)
 
         valid_custom.run_cmds('dummy')
 
@@ -69,12 +66,12 @@ def test_run_cmds_skips_cmds_on_unknown_key(valid_custom):
             os.remove(random_file_foo)
 
 
-def test_get_yaml_content_returns_content(valid_custom):
-    content = valid_custom._get_yaml_content()
+def test_yaml_content_returns_content(valid_custom):
+    content = valid_custom.yaml_content
     assert content
 
 
-def test_get_yaml_content_returns_singleton_object(valid_custom):
-    content = valid_custom._get_yaml_content()
-    content2 = valid_custom._get_yaml_content()
+def test_yaml_content_returns_singleton_object(valid_custom):
+    content = valid_custom.yaml_content
+    content2 = valid_custom.yaml_content
     assert content is content2
