@@ -67,10 +67,9 @@ def test_verify_returns_true_on_valid_recipe(ok_recipe):
     assert ok_recipe.verify()
 
 
-def test_verify_raises_error_on_recipe_without_name(ok_recipe):
-    del ok_recipe.recipe['name']
-    with pytest.raises(ValueError):
-        ok_recipe.verify()
+def test_verify_returns_true_on_recipe_with_name(ok_recipe):
+    ok_recipe.recipe['name'] = 'a'
+    assert ok_recipe.verify()
 
 
 def test_verify_raises_error_on_recipe_with_empty_name(ok_recipe):
@@ -79,8 +78,10 @@ def test_verify_raises_error_on_recipe_with_empty_name(ok_recipe):
         ok_recipe.verify()
 
 
-def test_verify_returns_true_on_recipe_without_requires(ok_recipe):
-    del ok_recipe.recipe['requires']
+def test_verify_returns_true_on_recipe_with_requires(ok_recipe):
+    ok_recipe.recipe['requires'] = [
+        'rh-ruby23', 'rh-nodejs4', 'rh-mongodb32',
+    ]
     assert ok_recipe.verify()
 
 
@@ -113,6 +114,80 @@ def test_verify_raises_error_on_recipe_with_empty_package_name(ok_recipe):
         'foo',
         ''
     ]
+    with pytest.raises(ValueError):
+        ok_recipe.verify()
+
+
+def test_verify_raises_error_on_recipe_with_unknown_element(ok_recipe):
+    ok_recipe.recipe['unknown'] = 'a'
+    with pytest.raises(ValueError):
+        ok_recipe.verify()
+
+
+@pytest.mark.parametrize('key', ('macros', 'replaced_macros', 'cmd', 'dist'))
+def test_verify_raises_error_with_empty_value_in_package(ok_recipe, key):
+    package = {
+        'foo_package': {
+            key: ''
+        }
+    }
+    ok_recipe.recipe['packages'].append(package)
+
+    with pytest.raises(ValueError):
+        ok_recipe.verify()
+
+
+@pytest.mark.parametrize('key', ('macros', 'replaced_macros'))
+def test_verify_raises_error_with_invalid_macros_in_package(ok_recipe, key):
+    package = {
+        'foo_package': {
+            key: ['a']
+        }
+    }
+    ok_recipe.recipe['packages'].append(package)
+
+    with pytest.raises(ValueError):
+        ok_recipe.verify()
+
+
+def test_verify_raises_error_with_invalid_cmd_in_package(ok_recipe):
+    package = {
+        'foo_package': {
+            'cmd': {
+                'a': 'cmd_a',
+                'b': 'cmd_b',
+            }
+        }
+    }
+
+    ok_recipe.recipe['packages'].append(package)
+
+    with pytest.raises(ValueError):
+        ok_recipe.verify()
+
+
+def test_verify_raises_error_with_invalid_dist_in_package(ok_recipe):
+    package = {
+        'foo_package': {
+            'dist': ['el6', 'el7']
+        }
+    }
+
+    ok_recipe.recipe['packages'].append(package)
+
+    with pytest.raises(ValueError):
+        ok_recipe.verify()
+
+
+def test_verify_raises_error_with_unknown_element_in_package(ok_recipe):
+    package = {
+        'foo_package': {
+            'unknown': 'a',
+        }
+    }
+
+    ok_recipe.recipe['packages'].append(package)
+
     with pytest.raises(ValueError):
         ok_recipe.verify()
 
