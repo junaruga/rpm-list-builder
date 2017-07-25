@@ -29,7 +29,7 @@ DIST_RE = re.compile('^(fc|el|centos)[0-9]*$')
 )
 @click.option(
     '--download', '-d',
-    type=click.Choice('none local rhpkg custom'.split()),
+    type=click.Choice('none local fedpkg rhpkg custom'.split()),
     default='none',
     help='Choose a download type.',
 )
@@ -59,7 +59,8 @@ DIST_RE = re.compile('^(fc|el|centos)[0-9]*$')
 # Download options
 @click.option(
     '--branch', '-B', metavar='BRANCH',
-    help='Git branch for downloaders that use it (rhpkg).',
+    help=('Git branch for downloaders that use it '
+          '(download type: fedpkg, rhpkg).'),
 )
 @click.option(
     '--source-directory', '-S', metavar='SOURCE_DIRECTORY',
@@ -72,6 +73,12 @@ DIST_RE = re.compile('^(fc|el|centos)[0-9]*$')
     '--resume', '-r', metavar='RESUME',
     type=click.INT,
     help='Resume build from specified position.',
+)
+@click.option(
+    '--pkg-cmd',
+    type=click.Choice('fedpkg rhpkg'.split()),
+    default='fedpkg',
+    help='Choose a package command.',
 )
 @click.option(
     '--mock-config', '-M', metavar='MOCK_CONFIG',
@@ -110,6 +117,8 @@ def run(recipe_file, collection_id, **option_dict):
 
     log = logging.getLogger(__name__)
 
+    _adjust_option_dict(option_dict)
+
     # Load recipe and processing objects
     recipe = Recipe(recipe_file, collection_id)
     recipe.verify()
@@ -141,3 +150,15 @@ def validate_dist(dist):
         raise click.BadParameter(
             'dist shoule be match to pattern {0}'.format(DIST_RE.pattern))
     return dist
+
+
+def _adjust_option_dict(option_dict):
+    if not option_dict:
+        return
+    download = option_dict.get('download', None)
+    # When specifying download type: fedpkg or rhpkg,
+    # users must want to use the command in Builder.
+    for download_type in ('fedpkg', 'rhpkg'):
+        if download_type == download:
+            option_dict['pkg_cmd'] = download_type
+            break
