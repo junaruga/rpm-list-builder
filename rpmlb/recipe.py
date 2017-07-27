@@ -103,7 +103,7 @@ class Recipe:
             for key in package_dict.keys():
                 if key == 'name':
                     pass
-                elif key == 'macros' or key == 'replaced_macros':
+                elif key in {'macros', 'replaced_macros'}:
                     if not package_dict[key]:
                         raise ValueError('{0} is empty in the pacakge: {1}.'.
                                          format(key, name))
@@ -116,8 +116,7 @@ class Recipe:
                     if not package_dict[key]:
                         raise ValueError('{0} is empty in the package: {1}.'.
                                          format(key, name))
-                    if not (isinstance(package_dict[key], str) or
-                       isinstance(package_dict[key], list)):
+                    if not isinstance(package_dict[key], (str, list)):
                         message_format = (
                             '{0} should be a string '
                             'or a list in the package: {1}.'
