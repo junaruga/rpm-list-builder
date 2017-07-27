@@ -158,16 +158,17 @@ def test_path_bad_permissions(runner, path_kind, recipe_arguments):
                          ('fc', 'fc26', 'el', 'el7', 'centos', 'centos7'))
 def test_dist_returns_value_on_valid_options(recipe_arguments, valid_dist):
     options = ['--dist', valid_dist]
-    ctx = run.make_context('test_dist_returns_value_on_valid_options',
-                           options + recipe_arguments)
-    assert isinstance(ctx.params['dist'], str)
+    with run.make_context('test_dist_returns_value_on_valid_options',
+                          options + recipe_arguments) as ctx:
+        assert isinstance(ctx.params['dist'], str)
 
 
-def test_dist_raises_error_on_invalid_value(recipe_arguments):
+def test_dist_raises_error_on_invalid_value(runner, recipe_arguments):
     options = ['--dist', 'fedora']
-    with pytest.raises(click.BadParameter):
-        run.make_context('test_dist_raises_error_on_invalid_value',
-                         options + recipe_arguments)
+    result = runner.invoke(run, options + recipe_arguments,
+                           standalone_mode=False)
+    assert result.exception is not None
+    assert isinstance(result.exception, click.BadParameter)
 
 
 def test_resume_conversion(recipe_arguments):

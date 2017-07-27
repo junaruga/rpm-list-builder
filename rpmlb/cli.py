@@ -12,7 +12,7 @@ from .downloader.base import BaseDownloader
 from .recipe import Recipe
 from .work import Work
 
-DIST_RE = '^(fc|el|centos)\d*$'
+DIST_RE = re.compile('^(fc|el|centos)[0-9]*$')
 
 
 @click.command(add_help_option=False)
@@ -52,7 +52,7 @@ DIST_RE = '^(fc|el|centos)\d*$'
     help='Instructions for custom downloader and builder.',
 )
 @click.option(
-    '--dist', metavar='DIST',
+    '--dist', metavar=DIST_RE.pattern,
     help='Specifiy a distribution platform considered in a recipe file.',
     callback=lambda ctx, param, dist: validate_dist(dist),
 )
@@ -137,8 +137,7 @@ def run(recipe_file, collection_id, **option_dict):
 
 
 def validate_dist(dist):
-    pattern = re.compile(DIST_RE)
-    if dist and not pattern.match(dist):
+    if dist and not DIST_RE.match(dist):
         raise click.BadParameter(
-            'dist shoule be match to pattern {0}'.format(DIST_RE))
+            'dist shoule be match to pattern {0}'.format(DIST_RE.pattern))
     return dist

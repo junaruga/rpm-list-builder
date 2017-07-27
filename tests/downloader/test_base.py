@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -53,13 +53,12 @@ def test_run_skip_download(downloader):
 
     mock_work = get_mock_work()
     with pytest.helpers.generate_tmp_path() as tmp_path:
-        tmp_path_str = str(tmp_path)
-        os.mkdir(tmp_path_str)
-        with pytest.helpers.pushd(tmp_path_str):
+        tmp_path.mkdir()
+        with pytest.helpers.pushd(tmp_path):
             downloader.run(mock_work)
             assert not downloader.download.called
-            assert os.path.isdir('a')
-            assert os.path.isdir('b')
+            assert Path('a').is_dir()
+            assert Path('b').is_dir()
 
 
 def test_is_download_skipped_raises_error_when_package_dict_none(downloader):
