@@ -86,7 +86,6 @@ class BaseDownloader:
 
         dist = kwargs.get('dist')
         if dist and 'dist' in package_dict:
-            pattern = re.compile(package_dict['dist'])
-            if not pattern.match(dist):
+            if not re.match(package_dict['dist'], dist):
                 is_skipped = True
         return is_skipped
