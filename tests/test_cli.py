@@ -74,7 +74,7 @@ def test_parse_argv_no_options(tmpdir, option):
         'download': 'none',
         'branch': None,
         'source_directory': current_dir,
-        'pkg_cmd': 'fedpkg',
+        'pkg_cmd': None,
     }
 
     # Parse the arguments
@@ -82,7 +82,7 @@ def test_parse_argv_no_options(tmpdir, option):
         argv = list(map(str, [recipe_file, collection_id]))
         args = cli.run.make_context('rpmlb', argv).params
 
-    assert args[option] == expected[option]
+        assert args[option] == expected[option]
 
 
 @pytest.mark.parametrize('verbose', (True, False))
@@ -176,14 +176,14 @@ def test_pkg_cmd_raises_error_on_invalid_options(runner, recipe_arguments):
                          ('fc', 'fc26', 'el', 'el7', 'centos', 'centos7'))
 def test_dist_returns_value_on_valid_options(recipe_arguments, valid_dist):
     options = ['--dist', valid_dist]
-    with run.make_context('test_dist_returns_value_on_valid_options',
-                          options + recipe_arguments) as ctx:
+    with cli.run.make_context('test_dist_returns_value_on_valid_options',
+                              options + recipe_arguments) as ctx:
         assert isinstance(ctx.params['dist'], str)
 
 
 def test_dist_raises_error_on_invalid_value(runner, recipe_arguments):
     options = ['--dist', 'fedora']
-    result = runner.invoke(run, options + recipe_arguments,
+    result = runner.invoke(cli.run, options + recipe_arguments,
                            standalone_mode=False)
     assert result.exception is not None
     assert isinstance(result.exception, click.BadParameter)
@@ -245,17 +245,33 @@ def test_version_option(runner, version_switch):
     assert 'version' in out
 
 
-@pytest.mark.parametrize('download_type', ('fedpkg', 'rhpkg'))
-def test_adjust_option_dict_sets_download_type(recipe_arguments,
-                                               download_type):
+def test_choose_pkg_cmd_does_not_set(recipe_arguments):
     option_dict = {
-        'download': download_type,
         'pkg_cmd': 'testpkg',
     }
-    cli._adjust_option_dict(option_dict)
+    cli._choose_pkg_cmd(option_dict)
+    assert option_dict['pkg_cmd'] == 'testpkg'
+
+
+def test_choose_pkg_cmd_sets_default_value(recipe_arguments):
+    option_dict = {
+        'pkg_cmd': None,
+    }
+    cli._choose_pkg_cmd(option_dict)
+    assert option_dict['pkg_cmd'] == 'fedpkg'
+
+
+@pytest.mark.parametrize('download_type', ('fedpkg', 'rhpkg'))
+def test_choose_pkg_cmd_sets_download_type(recipe_arguments,
+                                           download_type):
+    option_dict = {
+        'download': download_type,
+        'pkg_cmd': None,
+    }
+    cli._choose_pkg_cmd(option_dict)
     assert option_dict['pkg_cmd'] == download_type
 
 
-def test_adjust_option_dict_returns_optoin_dict_is_none():
-    cli._adjust_option_dict(None)
+def test_choose_pkg_cmd_returns_optoin_dict_is_none():
+    cli._choose_pkg_cmd(None)
     assert True

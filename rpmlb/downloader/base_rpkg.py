@@ -9,6 +9,7 @@ LOG = logging.getLogger(__name__)
 class BaseRpkgDownloader(BaseDownloader):
     """A downloader class to get a pacakge with package command."""
 
+    @property
     def command(self):
         raise NotImplementedError('Implement this method.')
 
@@ -19,11 +20,10 @@ class BaseRpkgDownloader(BaseDownloader):
             raise ValueError('branch is required.')
         branch = kwargs['branch']
 
-        package_command = self.command()
         package = package_dict['name']
         cmd = r'''
 {} co {} && \
 cd {} && \
 git checkout {}
-        '''.strip().format(package_command, package, package, branch)
+        '''.strip().format(self.command, package, package, branch)
         utils.run_cmd(cmd)

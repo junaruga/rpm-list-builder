@@ -77,7 +77,6 @@ DIST_RE = re.compile('^(fc|el|centos)[0-9]*$')
 @click.option(
     '--pkg-cmd',
     type=click.Choice('fedpkg rhpkg'.split()),
-    default='fedpkg',
     help='Choose a package command.',
 )
 @click.option(
@@ -117,7 +116,7 @@ def run(recipe_file, collection_id, **option_dict):
 
     log = logging.getLogger(__name__)
 
-    _adjust_option_dict(option_dict)
+    _choose_pkg_cmd(option_dict)
 
     # Load recipe and processing objects
     recipe = Recipe(recipe_file, collection_id)
@@ -152,13 +151,17 @@ def validate_dist(dist):
     return dist
 
 
-def _adjust_option_dict(option_dict):
+def _choose_pkg_cmd(option_dict):
     if not option_dict:
         return
+    # User chose the command explicitly.
+    if 'pkg_cmd' in option_dict and option_dict['pkg_cmd']:
+        return
+
+    # Set default value.
+    option_dict['pkg_cmd'] = 'fedpkg'
+
     download = option_dict.get('download', None)
-    # When specifying download type: fedpkg or rhpkg,
-    # users must want to use the command in Builder.
-    for download_type in ('fedpkg', 'rhpkg'):
-        if download_type == download:
-            option_dict['pkg_cmd'] = download_type
-            break
+    # No explicit command, but relevant builder was selected.
+    if download in ('fedpkg', 'rhpkg'):
+        option_dict['pkg_cmd'] = download

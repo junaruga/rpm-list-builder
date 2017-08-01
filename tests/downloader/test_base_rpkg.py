@@ -11,8 +11,10 @@ def downloader():
 
 
 @pytest.fixture
-def mock_downloader(downloader):
-    downloader.command = lambda *args, **kwargs: 'testpkg'
+def mock_downloader(downloader, monkeypatch):
+    monkeypatch.setattr(type(downloader), 'command',
+                        mock.PropertyMock(return_value='testpkg'))
+
     return downloader
 
 
@@ -22,7 +24,7 @@ def test_init(downloader):
 
 def test_command_raises_not_implemented_error(downloader):
     with pytest.raises(NotImplementedError):
-        downloader.command()
+        downloader.command
 
 
 def test_download_passes_on_valid_arguments(mock_downloader):
