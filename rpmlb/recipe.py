@@ -3,6 +3,8 @@ from collections import Counter
 from itertools import starmap
 from typing import Iterator, Mapping, Union
 
+import cerberus
+
 from rpmlb.yaml import Yaml
 
 LOG = logging.getLogger(__name__)
@@ -10,6 +12,86 @@ LOG = logging.getLogger(__name__)
 
 class Recipe:
     """A class to describe recipe data."""
+
+    validation_schema = {
+        'name': {
+            'type': 'string',
+            'required': False,
+            'empty': False,
+        },
+        # Unsupported but allowed to set.
+        'requires': {
+            'type': 'list',
+            'required': False,
+            'empty': False,
+        },
+        'packages': {
+            'type': 'list',
+            'required': True,
+            'empty': False,
+            'oneof_schema': [
+                {
+                    'type': 'string',
+                    'required': False,
+                    'empty': False,
+                },
+                {
+                    'type': 'dict',
+                    # number of key is 1.
+                    'required': False,
+                    'empty': False,
+                    'schema': {
+                        'type': 'dict',
+                        'required': False,
+                        'empty': False,
+                        'schema': {
+                            'macros': {
+                                'type': 'dict',
+                                'required': False,
+                                'empty': False,
+                            },
+                            'replaced_macros': {
+                                'type': 'dict',
+                                'required': False,
+                                'empty': False,
+                            },
+                            'cmd': {
+                                'items': [
+                                    {
+                                        'type': 'string',
+                                        'required': False,
+                                        'empty': False,
+                                    },
+                                    {
+                                        'type': 'list',
+                                        'required': False,
+                                        'empty': False,
+                                    },
+                                ],
+                            },
+                            'dist': {
+                                'type': 'string',
+                                'required': False,
+                                'empty': False,
+                            },
+                            # Unsupported but allowed to set.
+                            'platforms': {
+                                'type': 'string',
+                                'required': False,
+                                'empty': False,
+                            },
+                            # Unsupported but allowed to set.
+                            'patch': {
+                                'type': 'string',
+                                'required': False,
+                                'empty': False,
+                            },
+                        }
+                    }
+                }
+            ]
+        }
+    }
 
     def __init__(self, file_path, collection_id):
         if not file_path:
@@ -63,79 +145,9 @@ class Recipe:
             yield package_dict
 
     def verify(self):
-        recipe = self.recipe
-
-        if 'packages' not in recipe:
-            raise ValueError('packages is required.')
-        if not recipe['packages']:
-            raise ValueError('packages is empty.')
-        if not isinstance(recipe['packages'], list):
-            raise ValueError('packages should be a list.')
-
-        for recipe_key in recipe:
-            if recipe_key == 'name':
-                if not recipe[recipe_key]:
-                    raise ValueError('{0} is empty.'.
-                                     format(recipe_key))
-
-                if not isinstance(recipe[recipe_key], str):
-                    raise ValueError('{0} shoule be a string.'.
-                                     format(recipe_key))
-            elif recipe_key == 'requires':
-                if not recipe[recipe_key]:
-                    raise ValueError('{0} is empty.'.
-                                     format(recipe_key))
-                if not isinstance(recipe[recipe_key], list):
-                    raise ValueError('{0} should be a list.'.
-                                     format(recipe_key))
-            elif recipe_key == 'packages':
-                pass
-            else:
-                raise ValueError(
-                    'Unknown element {0} exists.'.
-                    format(recipe_key))
-
-        for package_dict in self.each_normalized_package():
-            name = package_dict['name']
-            if not name:
-                raise ValueError('name is empty in the package.')
-
-            for key in package_dict.keys():
-                if key == 'name':
-                    pass
-                elif key in {'macros', 'replaced_macros'}:
-                    if not package_dict[key]:
-                        raise ValueError('{0} is empty in the pacakge: {1}.'.
-                                         format(key, name))
-
-                    if not isinstance(package_dict[key], dict):
-                        raise ValueError(
-                            '{0} should be a hash in the package: {1}.'.
-                            format(key, name))
-                elif key == 'cmd':
-                    if not package_dict[key]:
-                        raise ValueError('{0} is empty in the package: {1}.'.
-                                         format(key, name))
-                    if not isinstance(package_dict[key], (str, list)):
-                        message_format = (
-                            '{0} should be a string '
-                            'or a list in the package: {1}.'
-                        )
-                        raise ValueError(message_format.format(key, name))
-                elif key == 'dist':
-                    if not package_dict[key]:
-                        raise ValueError('{0} is empty in the package: {1}.'.
-                                         format(key, name))
-                    if not isinstance(package_dict[key], str):
-                        raise ValueError(
-                            '{0} should be a string in the package: {1}.'.
-                            format(key, name))
-                elif key == 'bootstrap_position':
-                    pass
-                else:
-                    raise ValueError(
-                        'Unknown element {0} exists in the package: {1}.'.
-                        format(key, name))
+        validator = cerberus.Validator(self.validation_schema)
+        if not validator.validate(self.recipe):
+            raise RecipeError(validator.errors)
 
         return True
 
@@ -191,3 +203,13 @@ class Recipe:
         sequence_map = dict(starmap(make_sequence, count_map.items()))
 
         return sequence_map
+
+
+class RecipeError(Exception):
+    """A class to manage validation error for recipe data."""
+
+    errors = {}
+
+    def __init__(self, errors: dict):
+        super().__init__(errors)
+        self.errors = errors
