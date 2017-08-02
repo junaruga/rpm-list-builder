@@ -3,7 +3,7 @@ from collections.abc import Mapping
 
 import pytest
 
-from rpmlb.recipe import Recipe
+from rpmlb.recipe import Recipe, RecipeError
 
 
 @pytest.fixture
@@ -74,7 +74,7 @@ def test_verify_returns_true_on_recipe_with_name(ok_recipe):
 
 def test_verify_raises_error_on_recipe_with_empty_name(ok_recipe):
     ok_recipe.recipe['name'] = ''
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
@@ -87,25 +87,25 @@ def test_verify_returns_true_on_recipe_with_requires(ok_recipe):
 
 def test_verify_raises_error_on_recipe_with_non_list_requires(ok_recipe):
     ok_recipe.recipe['requires'] = 'abc'
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
 def test_verify_raises_error_on_recipe_without_packages(ok_recipe):
     del ok_recipe.recipe['packages']
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
 def test_verify_raises_error_on_recipe_with_empty_packages(ok_recipe):
     ok_recipe.recipe['packages'] = []
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
 def test_verify_raises_error_on_recipe_with_non_list_packages(ok_recipe):
     ok_recipe.recipe['packages'] = 'abc'
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
@@ -114,13 +114,13 @@ def test_verify_raises_error_on_recipe_with_empty_package_name(ok_recipe):
         'foo',
         ''
     ]
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
 def test_verify_raises_error_on_recipe_with_unknown_element(ok_recipe):
     ok_recipe.recipe['unknown'] = 'a'
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
@@ -133,7 +133,7 @@ def test_verify_raises_error_with_empty_value_in_package(ok_recipe, key):
     }
     ok_recipe.recipe['packages'].append(package)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
@@ -146,7 +146,7 @@ def test_verify_raises_error_with_invalid_macros_in_package(ok_recipe, key):
     }
     ok_recipe.recipe['packages'].append(package)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
@@ -162,7 +162,7 @@ def test_verify_raises_error_with_invalid_cmd_in_package(ok_recipe):
 
     ok_recipe.recipe['packages'].append(package)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
@@ -175,7 +175,7 @@ def test_verify_raises_error_with_invalid_dist_in_package(ok_recipe):
 
     ok_recipe.recipe['packages'].append(package)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
@@ -188,7 +188,7 @@ def test_verify_raises_error_with_unknown_element_in_package(ok_recipe):
 
     ok_recipe.recipe['packages'].append(package)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(RecipeError):
         ok_recipe.verify()
 
 
