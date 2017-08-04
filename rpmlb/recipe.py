@@ -34,8 +34,8 @@ class Recipe:
 
     # Prepare validation data for normalized recipe packages.
     # Because cerberus does not support a list of union (string or dict),
-    # that is used for an original recipe data.
-    # Implement again after validaton rule: oneof_schema will be supported.
+    # that is used for an original recipe's packages element.
+    # Implement again after validaton rule: anyof_schema will be supported.
     # https://github.com/pyeve/cerberus/pull/321
     validation_normalized_schema = {
         'packages': {
@@ -44,18 +44,17 @@ class Recipe:
             'empty': False,
             'schema': {
                 'type': 'dict',
-                # number of key is 1.
                 'required': False,
                 'empty': False,
                 'schema': {
                     'name': {
                         'type': 'string',
-                        'required': False,
+                        'required': True,
                         'empty': False,
                     },
                     'bootstrap_position': {
                         'type': 'integer',
-                        'required': False,
+                        'required': True,
                         'nullable': True,
                     },
                     'macros': {
@@ -149,7 +148,7 @@ class Recipe:
     def verify(self):
         validator = cerberus.Validator(self.validation_schema)
         if not validator.validate(self.recipe):
-            raise RecipeError(validator.errors)
+            raise RecipeError(validator)
 
         normalized_packages = list(self.each_normalized_package())
         normalized_recipe = {
@@ -157,7 +156,7 @@ class Recipe:
         }
         validator = cerberus.Validator(self.validation_normalized_schema)
         if not validator.validate(normalized_recipe):
-            raise RecipeError(validator.errors)
+            raise RecipeError(validator)
 
         return True
 
@@ -219,7 +218,34 @@ class RecipeError(Exception):
     """A class to manage validation error for recipe data."""
 
     errors = {}
+    error_messages = []
 
-    def __init__(self, errors: dict):
+    def __init__(self, validator: cerberus.Validator):
+        errors = validator.errors
+
+        for key in validator.errors:
+            error_list = validator.document_error_tree[key]
+            # error: ValidationError object
+            for error in error_list:
+                message_format = (
+                    'error tree key: {}, '
+                    'document_path: {}, '
+                    'code: {}, '
+                    'rule: {}, '
+                    'constraint: {}, '
+                    # 'value: {}, '
+                    'info: {}'
+                )
+                LOG.error(message_format.format(
+                    key,
+                    error.document_path,
+                    error.code,
+                    error.rule,
+                    error.constraint,
+                    # error.value,
+                    error.info,
+                ))
+
         super().__init__(errors)
+
         self.errors = errors
