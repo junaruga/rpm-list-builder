@@ -26,8 +26,8 @@ class CustomBuilder(BaseBuilder):
         #: Custom commands runner to use
         self.custom_runner = Custom(custom_file)
 
-    def before(self, work, **kwargs):
+    def before(self, work, **_):
         self.custom_runner.run_cmds('before_build')
 
-    def build(self, package_dict, **kwargs):
+    def build(self, package_dict, **_):
         self.custom_runner.run_cmds('build', **package_dict)

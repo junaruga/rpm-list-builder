@@ -28,7 +28,7 @@ MACRO_REGEX = re.compile(
 class BaseBuilder:
     """A base class for the package builder."""
 
-    def __init__(self, work: Work, **options):
+    def __init__(self, _: Work, **options):
         """Initialize the builder to a valid state.
 
         Keyword arguments:
@@ -255,7 +255,7 @@ class BaseBuilder:
     def prepare_extra_steps(
         self,
         source: Iterator[str],
-        package_metadata: Mapping[str, Any]
+        _: Mapping[str, Any]
     ):
         """Builder-specific package preparation.
 

@@ -26,7 +26,7 @@ class KojiBuilder(BaseBuilder):
         koji_target_format: str = None,
         koji_owner: str = None,
         koji_profile: Optional[str] = None,
-        **extra_options
+        **_
     ):
         """Initialize the builder.
 

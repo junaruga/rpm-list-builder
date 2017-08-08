@@ -26,7 +26,7 @@ class MockBuilder(BaseBuilder):
         #: Name of the Mock configuration profile to use
         self.mock_config = mock_config
 
-    def before(self, work, **kwargs):
+    def before(self, work, **_):
         utils.run_cmd('mock -r {} --scrub=all'.format(self.mock_config))
 
     def build(self, package_dict, **kwargs):

@@ -45,7 +45,7 @@ class BaseDownloader:
 
         self.before(work, **kwargs)
 
-        for package_dict, num_name in work.each_num_dir():
+        for package_dict, _ in work.each_num_dir():
             if self._is_download_skipped(package_dict, **kwargs):
                 name = package_dict['name']
                 LOG.debug('Skip download package: %s', name)
