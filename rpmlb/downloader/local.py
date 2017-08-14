@@ -1,3 +1,5 @@
+"""A module to manage classes to copy a pacakge from source directory."""
+
 import logging
 import os
 import shutil
@@ -11,9 +13,11 @@ class LocalDownloader(BaseDownloader):
     """A downloader class to copy a pacakge from source directory."""
 
     def __init__(self):
+        """Initialize this class."""
         pass
 
     def download(self, package_dict, **kwargs):
+        """Override BaseDownloader download method."""
         if not package_dict:
             raise ValueError('package_dict is required.')
         if 'source_directory' not in kwargs or not kwargs['source_directory']:

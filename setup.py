@@ -1,3 +1,4 @@
+"""A setup script for building, distributing and installing."""
 import setuptools
 
 with open('README.rst') as f:

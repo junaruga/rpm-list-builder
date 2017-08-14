@@ -1,3 +1,5 @@
+"""A module to manage YAML data in rpmlb."""
+
 import logging
 import os
 
@@ -12,6 +14,7 @@ class Yaml:
     """A class to manage YAML data."""
 
     def __init__(self, file_path):
+        """Initialize this class."""
         try:
             from yaml import CLoader as Loader
         except ImportError:
@@ -24,6 +27,7 @@ class Yaml:
             raise e
 
     def dump(self):
+        """Print a dump data of the yaml data."""
         try:
             from yaml import CDumper as Dumper
         except ImportError:
@@ -34,6 +38,10 @@ class Yaml:
 
     @staticmethod
     def run_cmd_element(cmd_element, **kwargs):
+        """Run shell command for the cmd_element.
+
+        cmd_element: Command object. str or list object is available.
+        """
         if isinstance(cmd_element, str):
             cmds = [cmd_element]
         elif isinstance(cmd_element, list):

@@ -1,4 +1,4 @@
-"""Test argument parsing"""
+"""Test rpmlb.cli for an argument parsing."""
 
 import logging
 import os
@@ -15,11 +15,13 @@ from rpmlb import cli
 
 @pytest.fixture
 def root_logger():
+    """Create a logger object used in the tests."""
     return logging.getLogger()
 
 
 @pytest.fixture
 def runner(root_logger):
+    """Create a runner to test interfaces implemented by click module."""
     r = CliRunner()
 
     with r.isolated_filesystem():
@@ -28,8 +30,7 @@ def runner(root_logger):
 
 @pytest.fixture
 def recipe_path(tmpdir):
-    """Test recipe file path"""
-
+    """Return a test recipe file path."""
     with tmpdir.as_cwd():
         path = Path.cwd().resolve() / 'recipe.yml'
 
@@ -49,8 +50,10 @@ def recipe_path(tmpdir):
 
 @pytest.fixture
 def recipe_arguments(recipe_path):
-    """Common recipe arguments: Path to the recipe file and recipe name."""
+    """Return common recipe arguments.
 
+    Path to the recipe file and recipe name.
+    """
     return [str(recipe_path), 'test']
 
 
@@ -58,8 +61,7 @@ def recipe_arguments(recipe_path):
                                     'download', 'branch', 'source_directory',
                                     'pkg_cmd'))
 def test_parse_argv_no_options(tmpdir, option):
-    """Tests proper default values of the CLI"""
-
+    """Test proper default values of the CLI."""
     recipe_file = tmpdir.join('ror.yml')
     collection_id = 'rh-ror50'
 
@@ -89,7 +91,6 @@ def test_parse_argv_no_options(tmpdir, option):
 @pytest.mark.parametrize('verbose', (True, False))
 def test_log_verbosity(root_logger, runner, verbose, recipe_arguments):
     """Ensure that the verbosity is set properly on."""
-
     verbose_args = ['--verbose'] if verbose else []
     level = logging.DEBUG if verbose else logging.INFO
 
@@ -99,11 +100,12 @@ def test_log_verbosity(root_logger, runner, verbose, recipe_arguments):
 
 @pytest.fixture(params=('work-directory', 'custom-file'))
 def path_kind(request):
+    """Return path kind to decide command options."""
     return request.param
 
 
 def path_options(path_kind):
-    """Excepted environment for the path tests"""
+    """Return excepted environment for the path tests."""
     filename = 'custom.yml' if path_kind == 'custom-file' else path_kind
 
     root = Path.cwd().resolve()
@@ -117,6 +119,7 @@ def path_options(path_kind):
 
 
 def test_path_nonexistent(runner, path_kind, recipe_arguments):
+    """Test the case of that option value's path does not exist."""
     path, options = path_options(path_kind)
 
     result = runner.invoke(cli.run, options + recipe_arguments,
@@ -126,6 +129,7 @@ def test_path_nonexistent(runner, path_kind, recipe_arguments):
 
 
 def test_path_expected_and_absolute(path_kind, recipe_arguments):
+    """Test the options' path value is parsed as absolute path."""
     path, options = path_options(path_kind)
 
     if path_kind.endswith('directory'):
@@ -141,6 +145,7 @@ def test_path_expected_and_absolute(path_kind, recipe_arguments):
 
 
 def test_path_bad_permissions(runner, path_kind, recipe_arguments):
+    """Test the case of that the option's directory or file's permisson."""
     path, options = path_options(path_kind)
 
     if path_kind.endswith('directory'):
@@ -159,6 +164,7 @@ def test_path_bad_permissions(runner, path_kind, recipe_arguments):
 
 @pytest.mark.parametrize('pkg_cmd', ('fedpkg', 'rhpkg'))
 def test_pkg_cmd_returns_valid_value(recipe_arguments, pkg_cmd):
+    """Test the case of that the pkg-cmd option has valid value."""
     options = ['--pkg-cmd', pkg_cmd]
     with cli.run.make_context('test_pkg_cmd_{}_returns_value'.format(pkg_cmd),
                               options + recipe_arguments) as ctx:
@@ -166,6 +172,7 @@ def test_pkg_cmd_returns_valid_value(recipe_arguments, pkg_cmd):
 
 
 def test_pkg_cmd_raises_error_on_invalid_options(runner, recipe_arguments):
+    """Test the case of that the pkg-cmd option has invalid value."""
     options = ['--pkg-cmd', 'foo']
     result = runner.invoke(cli.run, options + recipe_arguments,
                            standalone_mode=False)
@@ -176,6 +183,7 @@ def test_pkg_cmd_raises_error_on_invalid_options(runner, recipe_arguments):
 @pytest.mark.parametrize('valid_dist',
                          ('fc', 'fc26', 'el', 'el7', 'centos', 'centos7'))
 def test_dist_returns_value_on_valid_options(recipe_arguments, valid_dist):
+    """Test the case of that the dist option has valid value."""
     options = ['--dist', valid_dist]
     with cli.run.make_context('test_dist_returns_value_on_valid_options',
                               options + recipe_arguments) as ctx:
@@ -183,6 +191,7 @@ def test_dist_returns_value_on_valid_options(recipe_arguments, valid_dist):
 
 
 def test_dist_raises_error_on_invalid_value(runner, recipe_arguments):
+    """Test the case of that the dist option has invalid value."""
     options = ['--dist', 'fedora']
     result = runner.invoke(cli.run, options + recipe_arguments,
                            standalone_mode=False)
@@ -191,8 +200,7 @@ def test_dist_raises_error_on_invalid_value(runner, recipe_arguments):
 
 
 def test_resume_conversion(recipe_arguments):
-    """Resume is converted into integer value."""
-
+    """Test that resume is converted into integer value."""
     options = ['--resume', '42']
     with cli.run.make_context('test-resume-conversion',
                               options + recipe_arguments) as ctx:
@@ -200,7 +208,7 @@ def test_resume_conversion(recipe_arguments):
 
 
 def test_invalid_resume(runner, recipe_arguments):
-
+    """Test the case of that the resume option has invalid value."""
     options = ['--resume', 'start']
 
     result = runner.invoke(cli.run, options + recipe_arguments,
@@ -215,8 +223,7 @@ def test_invalid_resume(runner, recipe_arguments):
     ('copr-repo', 'scratch-ror5'),
 ])
 def test_simple_options(recipe_arguments, option, value):
-    """Specific option values are passed unprocessed."""
-
+    """Test that specific option values are passed unprocessed."""
     options = ['--' + option, value]
     with cli.run.make_context('test-{}-passing'.format(option),
                               options + recipe_arguments) as ctx:
@@ -227,7 +234,6 @@ def test_simple_options(recipe_arguments, option, value):
 @pytest.mark.parametrize('help_switch', ['--help', '-h'])
 def test_help_option_variants(runner, help_switch, recipe_arguments):
     """Test that both short and long version of help switch works."""
-
     # NOTE: recipe_arguments are necessary, both run.make_context and
     # runner.invoke break without them for some reason
     result = runner.invoke(cli.run, [help_switch] + recipe_arguments)
@@ -237,7 +243,7 @@ def test_help_option_variants(runner, help_switch, recipe_arguments):
 
 @pytest.mark.parametrize('version_switch', ['--version'])
 def test_version_option(runner, version_switch):
-    """Test that --version option displays the version"""
+    """Test that --version option displays the version."""
     result = runner.invoke(cli.run, [version_switch])
     out = result.output.strip()
 
@@ -247,6 +253,7 @@ def test_version_option(runner, version_switch):
 
 
 def test_choose_pkg_cmd_does_not_set(recipe_arguments):
+    """Test specified argument pkg-cmd value is used as it is."""
     option_dict = {
         'pkg_cmd': 'testpkg',
     }
@@ -255,6 +262,7 @@ def test_choose_pkg_cmd_does_not_set(recipe_arguments):
 
 
 def test_choose_pkg_cmd_sets_default_value(recipe_arguments):
+    """Test default value is set as the pkg-cmd value."""
     option_dict = {
         'pkg_cmd': None,
     }
@@ -265,6 +273,7 @@ def test_choose_pkg_cmd_sets_default_value(recipe_arguments):
 @pytest.mark.parametrize('download_type', ('fedpkg', 'rhpkg'))
 def test_choose_pkg_cmd_sets_download_type(recipe_arguments,
                                            download_type):
+    """Test the pkg-cmd sets download type."""
     option_dict = {
         'download': download_type,
         'pkg_cmd': None,
@@ -274,6 +283,7 @@ def test_choose_pkg_cmd_sets_download_type(recipe_arguments,
 
 
 def test_choose_pkg_cmd_returns_optoin_dict_is_none():
+    """Test the pkg-cmd is success when the argument pkg-cmd is not set."""
     cli._choose_pkg_cmd(None)
     assert True
 
@@ -285,7 +295,6 @@ def test_choose_pkg_cmd_returns_optoin_dict_is_none():
 ])
 def test_retry_sets_num_of_retries(value, exception_type, recipe_arguments):
     """Ensure proper handling of retry parameter."""
-
     options = ['--retry', str(value)]
 
     with ExitStack() as contexts:

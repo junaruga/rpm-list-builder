@@ -1,3 +1,5 @@
+"""A module to manage a custom builder."""
+
 import logging
 
 from ..custom import Custom
@@ -16,8 +18,8 @@ class CustomBuilder(BaseBuilder):
         Keyword arguments:
             work: The overview of the work to do.
             custom_file: Path to the custom file.
-        """
 
+        """
         super().__init__(work, custom_file=custom_file, **options)
 
         if custom_file is None:
@@ -27,7 +29,9 @@ class CustomBuilder(BaseBuilder):
         self.custom_runner = Custom(custom_file)
 
     def before(self, work, **kwargs):
+        """Override BaseBuilder before method."""
         self.custom_runner.run_cmds('before_build')
 
     def build(self, package_dict, **kwargs):
+        """Override BaseBuilder build method."""
         self.custom_runner.run_cmds('build', **package_dict)

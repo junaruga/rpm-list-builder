@@ -1,3 +1,5 @@
+"""Test rpmlb.yaml."""
+
 import pytest
 
 from rpmlb.yaml import Yaml
@@ -5,26 +7,30 @@ from rpmlb.yaml import Yaml
 
 @pytest.fixture
 def valid_yaml(valid_recipe_path):
-    """A Yaml object with a valid YAML file."""
+    """Return a Yaml object with a valid YAML file."""
     return Yaml(str(valid_recipe_path))
 
 
 def test_init_loads_file(valid_yaml):
+    """Test init loads file."""
     assert valid_yaml
 
 
 def test_init_raises_error_on_not_existing_file():
+    """Test init raises error on not existing file."""
     with pytest.raises(FileNotFoundError):
         Yaml('foo/dummy.yml')
 
 
 def test_dump_prints_output(capsys, valid_yaml):
+    """Test dump prints output."""
     valid_yaml.dump()
     stdout, stderr = capsys.readouterr()
     assert 'rh-ror50:' in stdout
 
 
 def test_run_cmds_runs_cmd_by_cmd_element_type_string(random_file_path):
+    """Test run_cmds is success by string element."""
     # Test with generated file.
     # Because we can not test using stdout with capsys fixture,
     # the capsys does not capture stdout from subprocess in run_cmds.
@@ -34,6 +40,7 @@ def test_run_cmds_runs_cmd_by_cmd_element_type_string(random_file_path):
 
 
 def test_run_cmds_runs_cmds_by_cmd_element_type_list():
+    """Test run_cmds is success by list element."""
     with pytest.helpers.generate_tmp_path_list(2) as tmp_files:
         random_file_foo, random_file_bar_part = tmp_files
         random_file_bar = random_file_bar_part.with_name(
@@ -54,6 +61,7 @@ def test_run_cmds_runs_cmds_by_cmd_element_type_list():
 
 
 def test_run_cmds_raises_error_on_cmd_element_type_dict():
+    """Test run_cmds is failure by dict element."""
     cmd_element = {
         'a': 'b'
     }

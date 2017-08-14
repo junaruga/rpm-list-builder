@@ -1,4 +1,4 @@
-"""Enable direct execution of the module"""
+"""Enable direct execution of the module."""
 
 from . import cli
 

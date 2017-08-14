@@ -1,3 +1,5 @@
+"""Test rpmlb.builder.custom."""
+
 from pathlib import Path
 from subprocess import STDOUT, check_output
 
@@ -23,7 +25,7 @@ _cli_command = [
 
 
 def test_custom_build_hooks():
-    """Test that `--build custom` works as expected"""
+    """Test that `--build custom` works as expected."""
     output = check_output(_cli_command, universal_newlines=True, stderr=STDOUT)
     lines = output.strip().splitlines()
     # Only a unit test, so we don't explicitly check hook order,

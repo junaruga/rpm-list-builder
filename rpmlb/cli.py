@@ -1,4 +1,4 @@
-"""CLI interface for the package"""
+"""CLI interface for the package."""
 
 import logging
 import os
@@ -119,10 +119,11 @@ DIST_RE = re.compile('^(fc|el|centos)[0-9]*$')
 )
 @click.argument('collection_id')
 def run(recipe_file, collection_id, **option_dict):
-    """Download and build RPMs listed in RECIPE_FILE under COLLECTION_ID
-    (such as 'python33').
-    """
+    """Download and build RPMs listed in RECIPE_FILE under COLLECTION_ID.
 
+    RECIPE_FILE: Such as 'path/to/python.yml'
+    COLLECTION_ID: Such as 'python33'
+    """
     log = logging.getLogger(__name__)
 
     _choose_pkg_cmd(option_dict)
@@ -154,6 +155,7 @@ def run(recipe_file, collection_id, **option_dict):
 
 
 def validate_dist(dist):
+    """Validate dist option's value."""
     if dist and not DIST_RE.match(dist):
         raise click.BadParameter(
             'dist shoule be match to pattern {0}'.format(DIST_RE.pattern))

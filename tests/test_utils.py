@@ -1,3 +1,5 @@
+"""Test rpmlb.utils."""
+
 import os
 import subprocess
 import sys
@@ -6,11 +8,13 @@ from rpmlb import utils
 
 
 def test_camelize():
+    """Test camelize metohd is success."""
     new_word = utils.camelize('foo_bar')
     assert new_word == 'FooBar'
 
 
 def test_get_class():
+    """Test get_class metohd is success."""
     cls = utils.get_class('rpmlb.recipe.Recipe')
     assert cls
     cls = utils.get_class(
@@ -20,6 +24,7 @@ def test_get_class():
 
 
 def test_pushd():
+    """Test push metohd is success."""
     original_dir = os.getcwd()
     with utils.pushd('/tmp'):
         new_dir = os.getcwd()
@@ -29,6 +34,7 @@ def test_pushd():
 
 
 def test_run_cmd():
+    """Test run_cmd metohd is success."""
     result = utils.run_cmd_with_capture('echo a')
     assert isinstance(result, utils.CompletedProcess)
     assert result.returncode == 0
@@ -37,6 +43,7 @@ def test_run_cmd():
 
 
 def test_run_cmd_exception():
+    """Test run_cmd metohd is failure on command with error exit status."""
     exception = False
     result_e = None
     cmd = 'ls abc'

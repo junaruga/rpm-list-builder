@@ -1,3 +1,5 @@
+"""A module to manage a common logic for the builder."""
+
 import logging
 import re
 import sys
@@ -43,6 +45,8 @@ class BaseBuilder:
     def get_instance(name: str, work: Work, **options):
         """Instantiate named builder.
 
+        Inspired from factory method pattern.
+
         Keyword arguments:
             name: The name of the requested builder.
             work: Overview of the work to do.
@@ -50,8 +54,8 @@ class BaseBuilder:
 
         Returns:
             Instance of the named builder.
-        """
 
+        """
         class_name = 'rpmlb.builder.{0}.{1}Builder'.format(
             name,
             utils.camelize(name)
@@ -62,6 +66,11 @@ class BaseBuilder:
         return instance
 
     def run(self, work, **kwargs):
+        """Run entire build process.
+
+        before, after, prepare and build methods are run in the method.
+        This method is inspired from template method pattern.
+        """
         is_resume = kwargs.get('resume', False)
 
         if is_resume:
@@ -100,7 +109,7 @@ class BaseBuilder:
         return True
 
     def before(self, work: Work, **options):
-        """One-time build setup.
+        """Set up for the build logic once.
 
         This method is intended for setting up the whole build process,
         and it is skipped when using the resume.
@@ -112,7 +121,7 @@ class BaseBuilder:
         """
 
     def after(self, work: Work, **options):
-        """Final build clean-up.
+        """Clean up for the build logic once.
 
         This method is intended for cleaning up after successful build,
         and it is called once all the work is completed.
@@ -128,8 +137,8 @@ class BaseBuilder:
         Keyword arguments:
             package_dict: A dictionary of package metadata.
             options: Command line option for the builder to process.
-        """
 
+        """
         if 'name' not in package_dict:
             raise ValueError('package_dict is invalid.')
 
@@ -166,6 +175,7 @@ class BaseBuilder:
             Yaml.run_cmd_element(package_dict['cmd'], env=env)
 
     def build(self, package_dict, **kwargs):
+        """Build for given package."""
         raise NotImplementedError('Implement this method.')
 
     @staticmethod
@@ -181,8 +191,8 @@ class BaseBuilder:
         Returns:
             Context manager providing open handles
             for input and output file.
-        """
 
+        """
         # Ensure path type
         if not isinstance(target_path, Path):
             target_path = Path(target_path)
@@ -214,8 +224,8 @@ class BaseBuilder:
 
         Yields:
             Lines of the modified file.
-        """
 
+        """
         # Prepend all definitions before the stream
         for name, value in macros.items():
             yield '%global {name} {value}\n'.format(name=name, value=value)
@@ -234,11 +244,10 @@ class BaseBuilder:
 
         Yields:
             Lines of the modified file.
+
         """
-
         def replacement(match: Match) -> str:
-            """Macro replacement logic"""
-
+            """Macro replacement logic."""
             macro_name = match.group('name')
             macro_value = macros.get(macro_name, match.group('value'))
             return '%global {} {}'.format(macro_name, macro_value)
@@ -265,8 +274,8 @@ class BaseBuilder:
             source: The source file iterator.
             package_metadata: The metadata of the prepared package,
                 as passed to prepare().
-        """
 
+        """
         yield from source  # pass for generators
 
     def _is_build_skipped(self, package_dict: dict, num_name: str,
@@ -280,8 +289,8 @@ class BaseBuilder:
             num_name: A package's order number string.
             is_redume: if redume or not.
             kwargs: option arguments.
-        """
 
+        """
         if not package_dict:
             raise ValueError('package_dict is required.')
         if not num_name:

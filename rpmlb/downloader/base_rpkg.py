@@ -1,3 +1,5 @@
+"""A module for a downloader with package command."""
+
 import logging
 
 from .. import utils
@@ -11,9 +13,14 @@ class BaseRpkgDownloader(BaseDownloader):
 
     @property
     def command(self):
+        """Return the package command name.
+
+        Excepted to implement this method in the sub class.
+        """
         raise NotImplementedError('Implement this method.')
 
     def download(self, package_dict, **kwargs):
+        """Override BaseDownloader download method."""
         if not package_dict:
             raise ValueError('package_dict is required.')
         if 'branch' not in kwargs or not kwargs['branch']:

@@ -1,15 +1,18 @@
+"""Test rpmlb.downloader.local."""
+
 from pathlib import Path
 
 from rpmlb.downloader.local import LocalDownloader
 
 
 def test_init():
+    """Test init is success."""
     downloader = LocalDownloader()
     assert downloader
 
 
 def test_download(tmpdir_factory):
-
+    """Test download is success."""
     downloader = LocalDownloader()
     package_dict = {'name': 'a'}
 

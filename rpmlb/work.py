@@ -1,3 +1,5 @@
+"""A module to manage working directory and the behavior in the directory."""
+
 import logging
 import os
 import shutil
@@ -12,6 +14,7 @@ class Work:
     """A class to manage working directory."""
 
     def __init__(self, recipe, **kwargs):
+        """Initialize this class."""
         if recipe is None:
             raise ValueError('recipe is required.')
 
@@ -30,14 +33,28 @@ class Work:
         self.working_dir = working_dir
 
     def close(self):
+        """Behave as a deconstructor.
+
+        Remove the working directory.
+        """
         if os.path.isdir(self.working_dir):
             shutil.rmtree(self.working_dir)
 
     def num_name_from_count(self, count):
+        """Return number name that is used as number directory.
+
+        The name is the value adding padding zero considering number
+        of packages.
+        """
         num_name = self._num_dir_format % count
         return num_name
 
     def each_num_dir(self):
+        """Generaror to do something for each number directory.
+
+        Return the package and number directory name,
+        staying in each number directory.
+        """
         if not os.path.isdir(self.working_dir):
             ValueError('working_dir does not exist.')
 
@@ -54,6 +71,11 @@ class Work:
             count += 1
 
     def each_package_dir(self):
+        """Generaror to do something for each pacakge directory.
+
+        Return the package and number directory name,
+        staying in each package directory.
+        """
         for package_dict, num_name in self.each_num_dir():
             package = package_dict['name']
             with utils.pushd(package):

@@ -1,3 +1,5 @@
+"""Test rpmlb.work."""
+
 import os
 import re
 import shutil
@@ -11,6 +13,7 @@ from rpmlb.work import Work
 
 
 def test_init():
+    """Test init is success."""
     work = None
     mock_recipe = mock.MagicMock()
     mock_recipe.num_of_package.return_value = 2
@@ -26,6 +29,7 @@ def test_init():
 
 
 def test_init_work_directory():
+    """Test init with work_directory option is success."""
     work = None
     arg_working_dir = None
     mock_recipe = mock.MagicMock()
@@ -43,6 +47,7 @@ def test_init_work_directory():
 
 
 def test_close():
+    """Test close is success."""
     mock_recipe = mock.MagicMock()
     type(mock_recipe).num_of_package = mock.PropertyMock(return_value=2)
     work = Work(mock_recipe)
@@ -52,6 +57,7 @@ def test_close():
 
 
 def test_num_name_from_count():
+    """Test num_name_from_count is success."""
     mock_recipe = mock.MagicMock()
     type(mock_recipe).num_of_package = mock.PropertyMock(return_value=11)
 
@@ -62,6 +68,7 @@ def test_num_name_from_count():
 
 
 def test_each_num_dir():
+    """Test each_num_dir is success."""
     mock_recipe = mock.MagicMock()
     type(mock_recipe).num_of_package = mock.PropertyMock(return_value=2)
     package_dicts = [

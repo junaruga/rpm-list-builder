@@ -1,3 +1,5 @@
+"""Test rpmlb.builder.base."""
+
 import re
 import sys
 from collections import Counter
@@ -13,8 +15,7 @@ from rpmlb.work import Work
 
 @pytest.fixture
 def empty_spec_path(tmpdir):
-    """Empty spec file path"""
-
+    """Return empty spec file path."""
     spec = Path(str(tmpdir), 'test.spec')
     spec.touch()
 
@@ -27,8 +28,7 @@ def empty_spec_path(tmpdir):
 
 @pytest.fixture
 def prepared_macros():
-    """Prepared testing spec macros"""
-
+    """Return prepared testing spec macros."""
     macro_dict = {
         # Simple macro value
         'test_macro_a': r'value',
@@ -44,8 +44,7 @@ def prepared_macros():
 
 @pytest.fixture
 def macro_spec_path(empty_spec_path, prepared_macros):
-    """Path to a spec file containing some macro definitions"""
-
+    """Return path to a spec file containing some macro definitions."""
     with empty_spec_path.open(mode='w') as out_file:
         for name, value in prepared_macros.items():
             print('%global {} {}'.format(name, value), file=out_file)
@@ -60,7 +59,6 @@ def macro_spec_path(empty_spec_path, prepared_macros):
 @pytest.fixture
 def builder(valid_recipe_path):
     """Provide initialized BaseBuilder."""
-
     recipe = Recipe(str(valid_recipe_path), 'rh-ror50')
     work = Work(recipe)
     builder = BaseBuilder(work, pkg_cmd='testpkg')
@@ -68,10 +66,12 @@ def builder(valid_recipe_path):
 
 
 def test_init(builder):
+    """Test init is success."""
     assert builder
 
 
 def test_init_raises_error_without_pkg_cmd_option(valid_recipe_path):
+    """Test init raises an error without pkg-cmd option."""
     recipe = Recipe(str(valid_recipe_path), 'rh-ror50')
     work = Work(recipe)
     with pytest.raises(ValueError):
@@ -79,6 +79,7 @@ def test_init_raises_error_without_pkg_cmd_option(valid_recipe_path):
 
 
 def test_run_calls_before_build_after(builder):
+    """Test run calls before, build and after."""
     builder.before = mock.MagicMock()
     builder.build = mock.MagicMock(return_value=True)
     builder.after = mock.MagicMock()
@@ -92,6 +93,7 @@ def test_run_calls_before_build_after(builder):
 
 
 def test_run_returns_true_on_success(builder):
+    """Test run returns true on success."""
     builder.build = lambda *args, **kwargs: None
     builder.prepare = mock.MagicMock()
 
@@ -100,6 +102,7 @@ def test_run_returns_true_on_success(builder):
 
 
 def test_run_exception(builder):
+    """Test run raises an error when build raises an error."""
     builder.build = mock.Mock(side_effect=ValueError('test'))
     builder.prepare = mock.MagicMock()
 
@@ -127,7 +130,12 @@ def test_run_exception(builder):
     assert builder.build.call_count == len(calls)
 
 
-def test_run_does_not_call_before_calls_build_after_with_resume_option(builder):  # noqa: E501
+def test_run_does_not_call_before_calling_build_and_after_with_resume(builder):
+    """Test run does not call before method but call build and after methods.
+
+    when there is a resume option.
+
+    """
     builder.before = mock.MagicMock()
     builder.build = mock.MagicMock(return_value=True)
     builder.after = mock.MagicMock()
@@ -141,6 +149,7 @@ def test_run_does_not_call_before_calls_build_after_with_resume_option(builder):
 
 
 def get_mock_work():
+    """Return mocked work object."""
     mock_work = mock.MagicMock()
     package_dicts = [
         {'name': 'a'},
@@ -156,18 +165,15 @@ def get_mock_work():
 
 
 def test_double_edit(empty_spec_path):
-    """Original spec file is not modified twice"""
-
+    """Test original spec file is not modified twice."""
     def edit_file(path, indicator='Test edit'):
-        """Single edit round"""
-
+        """Do single edit round."""
         with BaseBuilder.edit_spec_file(str(path)) as (src, dst):
             print(indicator, file=dst)
             dst.write(src.read())
 
     def count_markers(path, marker='# Edited by rpmlb'):
-        """Count lines containing marker text in file"""
-
+        """Count lines containing marker text in file."""
         with path.open() as handle:
             return sum(marker in line for line in handle)
 
@@ -178,8 +184,7 @@ def test_double_edit(empty_spec_path):
 
 
 def test_macros_are_added_correctly(macro_spec_path, prepared_macros):
-    """Macros are safely added without messing with current file contents."""
-
+    """Test macros are safely added without messing with file contents."""
     new_macro_dict = {
         'bootstrap': 1,
         'with_bootstrap': 1,
@@ -205,8 +210,7 @@ def test_macros_are_added_correctly(macro_spec_path, prepared_macros):
 
 
 def test_macros_are_replaced_correctly(macro_spec_path, prepared_macros):
-    """Macros are correctly replaced."""
-
+    """Test macros are correctly replaced."""
     replaced_macro_dict = dict.fromkeys(prepared_macros, 'REPLACED')
 
     with BaseBuilder.edit_spec_file(macro_spec_path) as (original, modified):
@@ -229,14 +233,13 @@ def test_macros_are_replaced_correctly(macro_spec_path, prepared_macros):
 def test_prepare_runs_all_preparations(
     builder, macro_spec_path, prepared_macros,
 ):
-    """All preparations are done as expected
+    """Test all preparations are done as expected.
 
     1. `replace_macros` are replaced
     2. New macros are added
     3. Any builder extra steps are executed
     4. Commands in cmd element are executed
     """
-
     spec_file_name = macro_spec_path.name
     package_metadata = {
         'name': macro_spec_path.stem,
@@ -281,6 +284,7 @@ def test_prepare_runs_all_preparations(
 
 
 def test_is_build_skipped_raises_error_when_package_dict_is_none(builder):
+    """Test is_build_skipped raises an error when package_dict is none."""
     package_dict = None
     num_name = '1'
     is_redume = False
@@ -289,6 +293,7 @@ def test_is_build_skipped_raises_error_when_package_dict_is_none(builder):
 
 
 def test_is_build_skipped_raises_error_when_num_name_is_none(builder):
+    """Test is_build_skipped raises an error when num_name is none."""
     package_dict = {'name': 'a'}
     num_name = None
     is_redume = False
@@ -297,6 +302,11 @@ def test_is_build_skipped_raises_error_when_num_name_is_none(builder):
 
 
 def test_is_build_skipped_returns_false_on_matched_dist(builder):
+    """Test is_build_skipped returns false.
+
+    when argument dist matches package's dist.
+
+    """
     package_dict = {
         'name': 'a',
         'dist': 'fc2[56]',
@@ -311,6 +321,11 @@ def test_is_build_skipped_returns_false_on_matched_dist(builder):
 
 
 def test_is_build_skipped_returns_true_on_unmatched_dist(builder):
+    """Test is_build_skipped returns true.
+
+    when argument dist does not match package's dist.
+
+    """
     package_dict = {
         'name': 'a',
         'dist': 'fc2[56]',

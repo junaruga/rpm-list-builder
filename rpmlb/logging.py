@@ -1,3 +1,5 @@
+"""A module to manage rpmlb's logging."""
+
 import logging
 
 """ Set log format considering
@@ -14,7 +16,6 @@ LOG_FORMAT = '%(asctime)s %(levelname)-8s %(name)-26s %(message)s'
 
 def configure_logging(verbose):
     """Configure application-wide logging."""
-
     logging.basicConfig(format=LOG_FORMAT)
 
     # As logging.basicConfig() does anything only the first time it is

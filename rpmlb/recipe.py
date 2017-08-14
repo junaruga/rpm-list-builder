@@ -1,3 +1,5 @@
+"""A module to manage a recipe file."""
+
 import logging
 from collections import Counter
 from itertools import starmap
@@ -25,6 +27,7 @@ class Recipe:
     }
 
     def __init__(self, file_path, collection_id):
+        """Initialize this class."""
         if not file_path:
             raise ValueError('file_path is required.')
         if not collection_id:
@@ -41,6 +44,10 @@ class Recipe:
     def each_normalized_package(self):
         """Present recipe packages in normalized form.
 
+        The normalized form is to convert and filter original recipe data
+        to one that is the most effective structure in the working process.
+        And return the value.
+
         Yields:
             Dictionary with the package's data.
 
@@ -50,8 +57,8 @@ class Recipe:
                 sequence, or None if no bootstrap is necessary.
             - macros, replaced_macros: Mapping of macro name to (new)
                 macro body.
-        """
 
+        """
         packages = self.recipe['packages']
         bootstrap_map = self._count_bootstrap_sequences()
 
@@ -72,6 +79,10 @@ class Recipe:
             yield package_dict
 
     def verify(self):
+        """Verify the recipe data.
+
+        Raise RecipeError with error messages if the varidation is false.
+        """
         error_messages = self._verify_recipe()
         if error_messages:
             raise RecipeError(error_messages)
@@ -244,8 +255,8 @@ class Recipe:
 
         Raises:
             ValueError: Invalid package type.
-        """
 
+        """
         if isinstance(package, str):  # The name itself
             return package
 
@@ -268,14 +279,13 @@ class Recipe:
 
         Returns:
             Mapping of package number to iterator of bootstrap numbers.
-        """
 
+        """
         name_list = map(self._package_name, self.recipe['packages'])
         count_map = Counter(name_list)
 
         def make_sequence(name: str, count: int):
-            """Count package instances except the last one; start from 1"""
-
+            """Count package instances except the last one; start from 1."""
             sequence = range(1, count)
             return name, iter(sequence)
 
@@ -289,8 +299,13 @@ class RecipeError(click.ClickException):
     """A class to manage validation error for recipe data."""
 
     def __init__(self, messages: list):
+        """Initialize this class."""
         super().__init__(messages)
         self.messages = messages
 
     def format_message(self):
+        """Output an error message that is used in CLI.
+
+        This is a method extended from ClickException.
+        """
         return '\n'.join(['Recipe file is invalid.'] + self.messages)

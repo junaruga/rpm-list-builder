@@ -29,7 +29,6 @@ TMP_FILE_PREFIX = 'rpmlb-tmp-'
 @contextmanager
 def pushd(target_dir: Union[str, Path]):
     """Change current directory to target_dir."""
-
     current_dir = os.getcwd()
     if isinstance(target_dir, Path):
         target_dir = str(target_dir)
@@ -44,7 +43,6 @@ def pushd(target_dir: Union[str, Path]):
 @pytest.helpers.register
 def remove_if_is_file(path: Union[str, Path]):
     """Remove file if it exists."""
-
     if not isinstance(path, Path):
         path = Path(path)
 
@@ -58,8 +56,8 @@ def generate_tmp_path():
     """Generate randomly named temporary path.
 
     The file is removed at the exit from the context, if it exists.
-    """
 
+    """
     tmp_path = Path(tempfile.gettempdir(), '{prefix}{suffix:x}'.format(
         prefix=TMP_FILE_PREFIX,
         suffix=random.getrandbits(RANDOM_BITS),
@@ -80,8 +78,8 @@ def generate_tmp_path_list(count: int):
 
     Keyword arguments:
         count: Number of paths to generate.
-    """
 
+    """
     with ExitStack() as stack:
         tmp_path_list = [
             stack.enter_context(generate_tmp_path()) for __ in range(count)
@@ -95,7 +93,6 @@ def generate_tmp_path_list(count: int):
 @pytest.fixture
 def random_file_path():
     """Provide path to a random temporary file."""
-
     with generate_tmp_path() as path:
         yield path
 
@@ -103,12 +100,10 @@ def random_file_path():
 @pytest.fixture(scope='session')
 def valid_recipe_path():
     """Provide path to a valid recipe file."""
-
     return Path('tests/fixtures/recipes/ror.yml')
 
 
 @pytest.fixture(scope='session')
 def valid_custom_file_path():
     """Provide path to a valid custom file."""
-
     return Path('tests/fixtures/custom/echo.yml')

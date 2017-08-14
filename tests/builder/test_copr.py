@@ -1,3 +1,5 @@
+"""Test rpmlb.builder.copr."""
+
 from unittest import mock
 
 import pytest
@@ -10,29 +12,32 @@ from rpmlb.work import Work
 @pytest.fixture
 def work(valid_recipe_path):
     """Provide Work instance."""
-
     valid_recipe = Recipe(str(valid_recipe_path), 'rh-ror50')
     return Work(valid_recipe)
 
 
 @pytest.fixture
 def builder(work):
+    """Return a builder object."""
     pkg_cmd = 'fedpkg'
     copr_repo = 'ror50-test'
     return CoprBuilder(work, pkg_cmd=pkg_cmd, copr_repo=copr_repo)
 
 
 def test_init(builder):
+    """Test init is success."""
     assert builder
 
 
 def test_init_raises_error_without_copr_repo(builder):
+    """Test init raises an error without copr_repo option."""
     pkg_cmd = 'fedpkg'
     with pytest.raises(ValueError):
         CoprBuilder(work, pkg_cmd=pkg_cmd)
 
 
 def test_build_passes(builder, work):
+    """Test build is success."""
     with mock.patch('rpmlb.utils.run_cmd',
                     mock.Mock(return_value=True)) as mock_run_cmd:
         package_dict = {'name': 'a'}

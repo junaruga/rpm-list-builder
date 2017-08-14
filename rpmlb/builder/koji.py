@@ -1,4 +1,4 @@
-"""Builder interface for the Koji build service."""
+"""A module for the Koji build service."""
 
 import logging
 import re
@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 
 
 class KojiBuilder(BaseBuilder):
-    """Builder interface for the Koji build service."""
+    """A builder class for the Koji build service."""
 
     DEFAULT_TARGET_FORMAT = 'sclo{epel}-{collection}-rh-el{epel}'
 
@@ -39,8 +39,8 @@ class KojiBuilder(BaseBuilder):
             koji_owner: The user name of the owner of packages
                 newly added to a build tag.
             koji_profile: Name of the configuration profile to use.
-        """
 
+        """
         # Validity checks
         if koji_epel is None:
             raise ValueError('koji_epel parameter is required.')
@@ -71,7 +71,6 @@ class KojiBuilder(BaseBuilder):
     @property
     def base_command(self) -> Sequence[str]:
         """Basis of the command for build service interaction."""
-
         binary = 'koji'
 
         if self.profile is None:
@@ -81,8 +80,7 @@ class KojiBuilder(BaseBuilder):
 
     @property
     def target(self) -> str:
-        """The koji target to build into."""
-
+        """Return koji target to build into."""
         return self.target_format.format(
             collection=self.collection,
             epel=self.epel,
@@ -101,8 +99,8 @@ class KojiBuilder(BaseBuilder):
 
         Yields:
             Modified lines.
-        """
 
+        """
         # Pass source if not bootstrapping
         if position is None:
             return source
@@ -118,7 +116,6 @@ class KojiBuilder(BaseBuilder):
 
     def prepare_extra_steps(self, source, package_dict):
         """Koji-specific SPEC adjustments."""
-
         # Add .bsXX to release tag on bootstrap
         contents = self.adjust_bootstrap_release(
             source=source,
@@ -128,8 +125,7 @@ class KojiBuilder(BaseBuilder):
         return contents
 
     def build(self, package_dict, **kwargs):
-        """Build a package using Koji instance"""
-
+        """Build a package using Koji instance."""
         srpm_path = self._make_srpm(
             name=package_dict['name'],
             collection=self.collection,
@@ -154,8 +150,8 @@ class KojiBuilder(BaseBuilder):
 
         Returns:
             Path to the created SRPM.
-        """
 
+        """
         spec_path = Path('.'.join((name, 'spec')))
         if not spec_path.exists():
             raise FileNotFoundError(spec_path)
@@ -193,8 +189,7 @@ class KojiBuilder(BaseBuilder):
 
     @property
     def _destination_tag(self) -> str:
-        """Queries the destination tag for a current target."""
-
+        """Query the destination tag for a current target."""
         # Destination tag is dependent on target name and profile
         # Note: extract to generic utility decorator?
         cache_key = self.profile, self.target
@@ -220,8 +215,8 @@ class KojiBuilder(BaseBuilder):
 
         Keyword arguments:
             name: Name of the package to add.
-        """
 
+        """
         # Command is safely ignored if the package is in the tag already
         command = [
             'add-pkg',
@@ -237,8 +232,8 @@ class KojiBuilder(BaseBuilder):
         Keyword arguments:
             srpm_path: Path to the SRPM to build.
             scratch_build: If true, build with scratch option
-        """
 
+        """
         command = self.base_command + ['build']
 
         if self.scratch_build:
@@ -250,7 +245,6 @@ class KojiBuilder(BaseBuilder):
 
     def _wait_for_repo(self) -> None:
         """Wait for the package to appear in build repository."""
-
         # Packages are not submitted to repository on scratch builds
         if self.scratch_build:
             return

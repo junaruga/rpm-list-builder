@@ -1,4 +1,4 @@
-"""Tests for the KojiBuilder"""
+"""Test rpmlb.builder.koji."""
 
 import shutil
 from collections import namedtuple
@@ -27,7 +27,6 @@ from rpmlb.work import Work
 )
 def spec_path(request, tmpdir):
     """Provide a SPEC file path according to parameter."""
-
     # Copy the SPEc to temporary directory
     source = Path(request.param[0])
     target = Path(str(tmpdir), request.param[1])
@@ -40,23 +39,20 @@ def spec_path(request, tmpdir):
 
 @pytest.fixture
 def spec_contents(spec_path):
-    """Provide text contents of a minimal spec file"""
-
+    """Provide text contents of a minimal spec file."""
     with spec_path.open() as istream:
         return istream.read()
 
 
 @pytest.fixture
 def collection_id():
-    """Testing collection identification"""
-
+    """Return tested collection ID."""
     return 'rh-ror50'
 
 
 @pytest.fixture
 def work(valid_recipe_path, collection_id):
     """Provide Work instance."""
-
     valid_recipe = Recipe(str(valid_recipe_path), collection_id)
     return Work(valid_recipe)
 
@@ -64,7 +60,6 @@ def work(valid_recipe_path, collection_id):
 @pytest.fixture
 def builder(work):
     """Provide minimal KojiBuilder instance."""
-
     return KojiBuilder(work, koji_epel=7, koji_owner='test-owner')
 
 
@@ -74,36 +69,31 @@ def builder(work):
     'fedora-{collection}-epel{epel}',
 ])
 def target_format(request):
-    """Koji target format"""
-
+    """Return koji target format."""
     return request.param
 
 
 @pytest.fixture(params=list(range(6, 8)))
 def epel(request):
-    """EPEL version number"""
-
+    """Return EPEL version number."""
     return request.param
 
 
 @pytest.fixture(params=[None, 'koji', 'cbs'])
 def profile(request):
-    """Koji profile name"""
-
+    """Return koji profile name."""
     return request.param
 
 
 @pytest.fixture(params=[True, False])
 def scratch_build(request):
-    """Scratch build indicator"""
-
+    """Return scratch build indicator."""
     return request.param
 
 
 @pytest.fixture
 def cli_parameters(target_format, epel, profile, scratch_build):
-    """Builder parameters as coming from the CLI"""
-
+    """Return builder parameters as coming from the CLI."""
     return {
         'koji_epel': epel,
         'koji_owner': 'test-owner',
@@ -118,7 +108,6 @@ def cli_parameters(target_format, epel, profile, scratch_build):
 
 def test_init_sets_attributes(work, cli_parameters):
     """Ensure that the parameters are set to appropriate values."""
-
     builder = KojiBuilder(work, **cli_parameters)
 
     assert builder.collection == work._recipe._collection_id
@@ -132,7 +121,6 @@ def test_init_sets_attributes(work, cli_parameters):
 @pytest.mark.parametrize('required', ['koji_epel', 'koji_owner'])
 def test_init_checks_parameters(required, work, cli_parameters):
     """Ensure that required parameters are checked by __init__."""
-
     del cli_parameters[required]
 
     with pytest.raises(ValueError):
@@ -146,14 +134,12 @@ def test_init_checks_parameters(required, work, cli_parameters):
 ])
 def test_base_command_respect_profile(builder, profile, expected_command):
     """Ensure that the base_command attribute respects profile attribute."""
-
     builder.profile = profile
     assert builder.base_command == expected_command
 
 
 def test_default_format_is_used(work, epel):
     """Default format is used when no target format is specified."""
-
     parameters = {
         'koji_epel': epel, 'koji_owner': 'test-owner',  # required
         'koji_target_format': None,  # explicit None => should use default
@@ -168,7 +154,6 @@ def test_target_respects_format(
     builder, target_format, collection, epel
 ):
     """Ensure that the target is properly constructed from parameters."""
-
     builder.target_format = target_format
     builder.collection = collection
     builder.epel = epel
@@ -178,8 +163,7 @@ def test_target_respects_format(
 
 
 def test_make_srpm_creates_srpm(spec_path, collection_id, epel):
-    """Ensure that make_srpm works as expected"""
-
+    """Ensure that make_srpm works as expected."""
     configure_logging(DEBUG)
 
     arguments = {
@@ -202,8 +186,7 @@ def test_make_srpm_creates_srpm(spec_path, collection_id, epel):
 
 
 def test_missing_spec_is_reported(tmpdir):
-    """make_srpm does not attempt to build nonexistent SPEC file"""
-
+    """Test make_srpm does not attempt to build nonexistent SPEC file."""
     configure_logging(DEBUG)
 
     with tmpdir.as_cwd(), pytest.raises(FileNotFoundError):
@@ -212,7 +195,6 @@ def test_missing_spec_is_reported(tmpdir):
 
 def test_prepare_adjusts_bootstrap_release(builder, spec_contents):
     """Release is adjusted on bootstrap build."""
-
     lines = spec_contents.splitlines(keepends=True)
     lines = builder.prepare_extra_steps(lines, {
         'name': 'test',
@@ -232,7 +214,6 @@ def test_build_emit_correct_commands(
     monkeypatch, builder, scratch, expected_commands
 ):
     """Builder emits expected commands on build."""
-
     # Gather all emitted commands
     commands = []
     monkeypatch.setattr(
@@ -258,7 +239,6 @@ def test_build_emit_correct_commands(
 
 def test_destination_tag_parsed_correctly(monkeypatch, builder):
     """Assert that the destination tag is correctly extracted from output."""
-
     # Simulate output of `koji list-targets`
     raw_output = namedtuple('MockCommandOutput', ['stdout', 'stderr'])(
         stderr=b'',
@@ -280,7 +260,6 @@ def test_destination_tag_parsed_correctly(monkeypatch, builder):
 
 def test_add_package_respects_owner(monkeypatch, builder):
     """Assert that the owner is used by the _add_package method."""
-
     commands = []
     monkeypatch.setattr(
         'rpmlb.builder.koji.run_cmd',

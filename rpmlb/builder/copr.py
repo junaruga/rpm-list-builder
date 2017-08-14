@@ -1,3 +1,5 @@
+"""A module for the Copr build service."""
+
 import logging
 
 from .. import utils
@@ -16,8 +18,8 @@ class CoprBuilder(BaseBuilder):
         Keyword arguments:
             work: The overview of the work to do.
             copr_repo: Name of the repository to build into.
-        """
 
+        """
         super().__init__(work, copr_repo=copr_repo, **options)
 
         if copr_repo is None:
@@ -27,6 +29,7 @@ class CoprBuilder(BaseBuilder):
         self.copr_repo = copr_repo
 
     def build(self, package_dict, **kwargs):
+        """Override BaseBuilder build method."""
         utils.run_cmd('rm -v *.rpm', check=False)
         utils.run_cmd('{} srpm'.format(self._pkg_cmd))
         utils.run_cmd('copr-cli build {} *.rpm'.format(self.copr_repo))

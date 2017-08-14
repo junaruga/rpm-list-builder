@@ -1,3 +1,5 @@
+"""A module to manage a common logic for the downloader."""
+
 import logging
 import os
 import re
@@ -11,19 +13,22 @@ class BaseDownloader:
     """A base class for the package downloader."""
 
     def __init__(self):
+        """Initialize this class."""
         pass
 
     @staticmethod
     def get_instance(name: str):
         """Dynamically instantiate named downloader.
 
+        Inspired from factory method pattern.
+
         Keyword arguments:
             name: Name of the requested builder.
 
         Returns:
             Instance of the requested builder.
-        """
 
+        """
         class_name = 'rpmlb.downloader.{0}.{1}Downloader'.format(
             name,
             utils.camelize(name)
@@ -34,6 +39,11 @@ class BaseDownloader:
         return instance
 
     def run(self, work, **kwargs):
+        """Run entire download process.
+
+        before, after, prepare and download methods are run in the method.
+        This method is inspired from template method pattern.
+        """
         is_resume = kwargs.get('resume', False)
         if is_resume:
             message = (
@@ -61,12 +71,22 @@ class BaseDownloader:
         return True
 
     def before(self, work, **kwargs):
+        """Set up for the download logic once.
+
+        This method is intended for setting up the whole download process,
+        """
         pass
 
     def after(self, work, **kwargs):
+        """Clean up for the download logic once.
+
+        This method is intended for cleaning up after successful download,
+        and it is called once all the work is completed.
+        """
         pass
 
     def download(self, package_dict, **kwargs):
+        """Download for given package."""
         raise NotImplementedError('Implement this method.')
 
     def _is_download_skipped(self, package_dict: dict, **kwargs):
@@ -77,8 +97,8 @@ class BaseDownloader:
         Keyword arguments:
             package_dict: A dictionary of package metadata.
             kwargs: option arguments.
-        """
 
+        """
         if not package_dict:
             raise ValueError('package_dict is required.')
 
